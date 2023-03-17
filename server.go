@@ -47,19 +47,16 @@ func (this *Server) Broadcast(user *User, msg string) {
 
 // do handler
 func (this *Server) Handler(conn net.Conn) {
-	user := NewUser(conn)
+	user := NewUser(conn, this)
 	//将用户加入到上线用户表
-	this.mapLock.Lock()
-	this.OnlineMap[user.Name] = user
-	this.mapLock.Unlock()
-	//广播上线消息
-	this.Broadcast(user, "上线了")
+	user.Online()
+
 	go func() {
 		buf := make([]byte, 4096)
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				this.Broadcast(user, "下线")
+				user.Offline()
 				return
 			}
 			if err != nil && err != io.EOF {
@@ -68,7 +65,7 @@ func (this *Server) Handler(conn net.Conn) {
 			}
 			msg := string(buf[0 : n-1])
 
-			this.Broadcast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 	//阻塞
