@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -27,8 +28,7 @@ func NewServer(ip string, port int) *Server {
 	return server
 }
 
-//监听message channel，一旦有消息则广播
-
+// 监听message channel，一旦有消息则广播
 func (this *Server) ListenMessage() {
 	for {
 		msg := <-this.Message
@@ -54,6 +54,23 @@ func (this *Server) Handler(conn net.Conn) {
 	this.mapLock.Unlock()
 	//广播上线消息
 	this.Broadcast(user, "上线了")
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			if n == 0 {
+				this.Broadcast(user, "下线")
+				return
+			}
+			if err != nil && err != io.EOF {
+				fmt.Println("Err:", err)
+				return
+			}
+			msg := string(buf[0 : n-1])
+
+			this.Broadcast(user, msg)
+		}
+	}()
 	//阻塞
 	select {}
 }
