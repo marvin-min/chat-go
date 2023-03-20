@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"strings"
 )
 
 type User struct {
@@ -68,6 +69,20 @@ func (this *User) DoMessage(msg string) {
 			this.server.mapLock.Unlock()
 			this.sendMsg("您已经更新用户名成功")
 		}
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+		pmsg := strings.Split(msg, "|")
+		if len(pmsg) != 3 {
+			this.sendMsg("消息格式不正确: 正确格式: to|用户名|消息")
+		} else {
+			toUserName := pmsg[1]
+			user, ok := this.server.OnlineMap[toUserName]
+			if ok {
+				user.sendMsg(this.Name + "对你说:" + pmsg[2])
+			} else {
+				this.sendMsg("用户不" + toUserName + "存在")
+			}
+		}
+
 	} else {
 		this.server.Broadcast(this, msg)
 	}
