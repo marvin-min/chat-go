@@ -43,7 +43,7 @@ func (this *User) Offline() {
 }
 
 func (this *User) sendMsg(msg string) {
-	this.conn.Write([]byte(msg))
+	this.conn.Write([]byte(msg + "\r\n"))
 }
 func (this *User) DoMessage(msg string) {
 	if msg == "who" {
@@ -54,6 +54,20 @@ func (this *User) DoMessage(msg string) {
 			this.sendMsg(olineMsg)
 		}
 		this.server.mapLock.Unlock()
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		newName := msg[7:]
+		this.server.mapLock.Lock()
+		//判断是否被占用
+		_, ok := this.server.OnlineMap[newName]
+		if ok {
+			this.sendMsg("当前用户名[" + newName + "]已经被占用")
+		} else {
+			delete(this.server.OnlineMap, this.Name)
+			this.server.OnlineMap[newName] = this
+			this.Name = newName
+			this.server.mapLock.Unlock()
+			this.sendMsg("您已经更新用户名成功")
+		}
 	} else {
 		this.server.Broadcast(this, msg)
 	}
