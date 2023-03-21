@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"os"
 )
 
 type Client struct {
@@ -46,6 +48,17 @@ func (this *Client) menu() bool {
 		return false
 	}
 }
+func (client *Client) UpdateName() bool {
+	fmt.Println("》》》》》请输入用户名:")
+	fmt.Scanln(&client.Name)
+	msg := "rename|" + client.Name + "\n"
+	_, err := client.conn.Write([]byte(msg))
+	if err != nil {
+		fmt.Println("conn.Write err:", err)
+		return false
+	}
+	return true
+}
 
 func (client *Client) Run() {
 	for client.flag != 0 {
@@ -63,7 +76,7 @@ func (client *Client) Run() {
 			break
 		case 3:
 			//改名
-			fmt.Println("rename-----")
+			client.UpdateName()
 			break
 		}
 	}
@@ -77,6 +90,11 @@ func init() {
 	flag.IntVar(&serverPort, "port", 9999, "服务器ip默认端口9999")
 }
 
+// 处理server回应的消息，直接显示到终端
+func (client *Client) DealResponse() {
+	io.Copy(os.Stdout, client.conn)
+}
+
 func main() {
 	flag.Parse()
 	client := NewClient(serverIp, serverPort)
@@ -84,6 +102,7 @@ func main() {
 		fmt.Println(">>>>>>连接服务器失败.....")
 		return
 	}
+	go client.DealResponse()
 	fmt.Println("<<<<<<<<<<连接服务器成功.....")
 	client.Run()
 }
