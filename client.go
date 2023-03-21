@@ -59,7 +59,58 @@ func (client *Client) UpdateName() bool {
 	}
 	return true
 }
+func (client *Client) PublichChat() {
+	fmt.Println("》》》》》请输聊天内容，exit退出")
+	var msg string
+	fmt.Scanln(&msg)
+	for msg != "exit" {
+		if len(msg) != 0 {
+			_, err := client.conn.Write([]byte(msg + "\n"))
+			if err != nil {
+				fmt.Println("conn.Write err:", err)
+				break
+			}
+		}
+		msg := ""
+		fmt.Println("》》》》》请输聊天内容，exit退出")
+		fmt.Scanln(&msg)
+	}
+}
 
+func (client *Client) queryOnlineUsers() {
+	msg := "who\n"
+	_, err := client.conn.Write([]byte(msg))
+	if err != nil {
+		fmt.Println("conn.Write err:", err)
+		return
+	}
+}
+func (client *Client) PrivateChat() {
+	var name string
+	msg := ""
+	client.queryOnlineUsers()
+	fmt.Println("》》》》》请输聊天对象名称：exit退出")
+	fmt.Scanln(&name)
+	for name != "exit" {
+		fmt.Println("》》》》》请输聊天内容，exit退出")
+		fmt.Scanln(&msg)
+		for msg != "exit" {
+			if len(msg) != 0 {
+				_, err := client.conn.Write([]byte("to|" + name + "|" + msg + "\r\n"))
+				if err != nil {
+					fmt.Println("conn.Write err:", err)
+					break
+				}
+			}
+			msg = ""
+			fmt.Println("》》》》》请输聊天内容，exit退出>>>>>>>")
+			fmt.Scanln(&msg)
+		}
+		client.queryOnlineUsers()
+		fmt.Println("》》》》》请输聊天对象名称：exit退出")
+		fmt.Scanln(&name)
+	}
+}
 func (client *Client) Run() {
 	for client.flag != 0 {
 		for client.menu() != true {
@@ -68,11 +119,11 @@ func (client *Client) Run() {
 		switch client.flag {
 		case 1:
 			//群聊
-			fmt.Println("群聊-----")
+			client.PublichChat()
 			break
 		case 2:
 			//私聊
-			fmt.Println("私聊-----")
+			client.PrivateChat()
 			break
 		case 3:
 			//改名
