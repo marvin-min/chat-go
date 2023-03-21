@@ -11,6 +11,7 @@ type Client struct {
 	ServerPort int
 	Name       string
 	conn       net.Conn
+	flag       int
 }
 
 func NewClient(serverIp string, serverPort int) *Client {
@@ -18,6 +19,7 @@ func NewClient(serverIp string, serverPort int) *Client {
 	client := &Client{
 		ServerIp:   serverIp,
 		ServerPort: serverPort,
+		flag:       999,
 	}
 
 	//连接server
@@ -30,6 +32,41 @@ func NewClient(serverIp string, serverPort int) *Client {
 	client.conn = conn
 	// 返回客户端
 	return client
+}
+
+func (this *Client) menu() bool {
+	var flag int
+	fmt.Println("1. 群聊\r\n2.私聊\r\n3.更新用户名\r\n0.退出")
+	fmt.Scanln(&flag)
+	if flag >= 0 && flag <= 3 {
+		this.flag = flag
+		return true
+	} else {
+		fmt.Println(">>>>请输入0~3之间有效的菜单")
+		return false
+	}
+}
+
+func (client *Client) Run() {
+	for client.flag != 0 {
+		for client.menu() != true {
+
+		}
+		switch client.flag {
+		case 1:
+			//群聊
+			fmt.Println("群聊-----")
+			break
+		case 2:
+			//私聊
+			fmt.Println("私聊-----")
+			break
+		case 3:
+			//改名
+			fmt.Println("rename-----")
+			break
+		}
+	}
 }
 
 var serverIp string
@@ -48,5 +85,5 @@ func main() {
 		return
 	}
 	fmt.Println("<<<<<<<<<<连接服务器成功.....")
-	select {}
+	client.Run()
 }
