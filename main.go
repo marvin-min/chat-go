@@ -1,19 +1,22 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
 )
 
 func main() {
-	server := NewServer("0.0.0.0", 9999)
-	// go alert()
-	server.Start()
-}
+	a := app.New()
+	w := a.NewWindow("Hello")
 
-func alert() {
-	for {
-		time.Sleep(3 * time.Second)
-		fmt.Println("你该休息了")
-	}
+	hello := widget.NewLabel("Hello Fyne!")
+	w.SetContent(container.NewVBox(
+		hello,
+		widget.NewButton("Hi!", func() {
+			hello.SetText("Welcome :)")
+		}),
+	))
+
+	w.ShowAndRun()
 }
